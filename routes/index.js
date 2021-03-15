@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Books = require('../models').Book
 const createError = require('http-errors')
+const {Op} = require('sequelize')
 
 /* GET home page. */
 /* router.get('/', function(req, res, next) {
@@ -18,16 +19,22 @@ function asyncHandler (cb) {
   }
 }
 
+
+
 router.get('/', asyncHandler(async (req, res) => {
-  const books = await Books.findAll({ order: [['createdAt', 'DESC']] })
-  // const books = await Books.findAll()
-  console.log(books)
-  res.render('index', { books, title: 'Books' })
+  res.redirect('/books/page/1')
 }))
 
-router.get('/books', (req, res, next) => {
-  res.redirect('/')
-})
+router.get('/books/page/:pageNumber', asyncHandler(async (req, res) => {
+  const books = await Books.findAll({ order: [['createdAt', 'DESC']] })
+  const count = books.length
+  const pageCount = Math.ceil(count / 5)
+  const startIndex = (req.params.pageNumber * 5) - 5
+  const endIndex = req.params.pageNumber * 5
+  const filteredBooks = books.slice(startIndex, endIndex)
+  
+  res.render('index', { books: filteredBooks, pageCount, title: 'Books' })
+}))
 
 router.get('/books/new', (req, res, next) => {
   res.render('new-book', { books: {}, title: 'New Book' })
@@ -35,7 +42,7 @@ router.get('/books/new', (req, res, next) => {
 
 router.post('/books/new/create', asyncHandler(async (req, res) => {
   await Books.create(req.body)
-  res.redirect('/books/')
+  res.redirect('/')
 }))
 
 router.get('/books/:id', asyncHandler(async (req, res) => {
@@ -53,7 +60,7 @@ router.post('/books/:id/update', asyncHandler(async (req, res) => {
     book = await Books.findByPk(req.params.id)
     if (book) {
       await book.update(req.body)
-      res.redirect('/books/')
+      res.redirect('/')
     } else {
       res.sendStatus(404)
     }
@@ -72,7 +79,7 @@ router.post('/books/:id/delete', asyncHandler(async (req, res) => {
   const book = await Books.findByPk(req.params.id)
   if (book) {
     await book.destroy()
-    res.redirect('/books')
+    res.redirect('/')
   } else {
     res.sendStatus(404)
   }

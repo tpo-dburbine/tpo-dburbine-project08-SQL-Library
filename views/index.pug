@@ -22,5 +22,13 @@ block content
           td= book.genre
           td= book.year
 
+  div.pagination
+    - let i = 0
+      ul.pageList
+        while i < pageCount
+          - i++
+          li
+            a.button(href='/books/page/' + i)=i
+
 
 

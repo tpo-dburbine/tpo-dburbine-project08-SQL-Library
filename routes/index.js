@@ -19,8 +19,6 @@ function asyncHandler (cb) {
   }
 }
 
-
-
 router.get('/', asyncHandler(async (req, res) => {
   res.redirect('/books/page/1')
 }))
@@ -32,7 +30,7 @@ router.get('/books/page/:pageNumber', asyncHandler(async (req, res) => {
   const startIndex = (req.params.pageNumber * 5) - 5
   const endIndex = req.params.pageNumber * 5
   const filteredBooks = books.slice(startIndex, endIndex)
-  
+
   res.render('index', { books: filteredBooks, pageCount, title: 'Books' })
 }))
 

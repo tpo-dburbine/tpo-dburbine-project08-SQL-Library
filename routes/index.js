@@ -1,19 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const Books = require('../models').Book
+const createError = require('http-errors')
 
 /* GET home page. */
 /* router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 }); */
 
-
 function asyncHandler (cb) {
   return async (req, res, next) => {
     try {
       await cb(req, res, next)
     } catch (error) {
-      res.status(500).send(error)
+      next(error)
     }
   }
 }
@@ -34,30 +34,41 @@ router.get('/books/new', (req, res, next) => {
 })
 
 router.post('/books/new/create', asyncHandler(async (req, res) => {
-  const book = await Books.create(req.body)
-  res.redirect('/books/' + book.id)
+  await Books.create(req.body)
+  res.redirect('/books/')
 }))
 
 router.get('/books/:id', asyncHandler(async (req, res) => {
   const books = await Books.findByPk(req.params.id)
   if (books) {
-    res.render('update-book', { books })
+    res.render('update-book', { books, title: 'Update Book' })
   } else {
-    res.sendStatus(404)
+    throw createError(404)
   }
 }))
 
-router.post('/books/:id', asyncHandler(async (req, res) => {
-  const book = await Books.findByPk(req.params.id)
-  if (book) {
-    await book.update(req.body)
-    res.redirect('/books/' + book.id)
-  } else {
-    res.sendStatus(404)
+router.post('/books/:id/update', asyncHandler(async (req, res) => {
+  let book
+  try {
+    book = await Books.findByPk(req.params.id)
+    if (book) {
+      await book.update(req.body)
+      res.redirect('/books/')
+    } else {
+      res.sendStatus(404)
+    }
+  } catch (error) {
+    if (error.name === 'SequelizeValidationError') {
+      book = await Books.build(req.body)
+      book.id = req.params.id
+      res.render('update-book', { books: book, errors: error.errors, title: 'Edit Book' })
+    } else {
+      throw error;
+    }
   }
 }))
 
-router.post('/books/:id', asyncHandler(async (req, res) => {
+router.post('/books/:id/delete', asyncHandler(async (req, res) => {
   const book = await Books.findByPk(req.params.id)
   if (book) {
     await book.destroy()

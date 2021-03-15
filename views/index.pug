@@ -5,7 +5,10 @@ block content
 
   p
     a.button(href='/books/new') Create New Book
-    
+  
+  form(action="/books/search", method="post")
+    label(for="searchInput") Search
+      input(type="text", name="search", id="search", placeholder="Search (ex. fiction)")
   table 
     thread
       tr

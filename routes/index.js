@@ -43,6 +43,22 @@ router.post('/books/new/create', asyncHandler(async (req, res) => {
   res.redirect('/')
 }))
 
+router.post('/books/search', asyncHandler(async (req, res) => {
+  console.log(req.body.search)
+  const searchTerm = req.body.search
+  const books = await Books.findAll({
+    where: {
+      [Op.or]: [
+        { title: { [Op.like]: '%' + searchTerm + '%' } },
+        { author: { [Op.like]: '%' + searchTerm + '%' } },
+        { genre: { [Op.like]: '%' + searchTerm + '%' } },
+        { year: { [Op.like]: '%' + searchTerm + '%' } }
+      ]
+    }
+  })
+  res.render('index', { books, title: 'Books' })
+}))
+
 router.get('/books/:id', asyncHandler(async (req, res) => {
   const books = await Books.findByPk(req.params.id)
   if (books) {

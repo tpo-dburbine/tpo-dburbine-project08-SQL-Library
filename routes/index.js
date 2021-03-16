@@ -46,6 +46,7 @@ function dbQuery () {
 }
 
 router.get('/', asyncHandler(async (req, res) => {
+  searchTerm = ''
   res.redirect('/books/page/1')
 }))
 

@@ -8,6 +8,7 @@ const {Op} = require('sequelize')
 /* router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 }); */
+let searchTerm = ''
 
 function asyncHandler (cb) {
   return async (req, res, next) => {
@@ -19,17 +20,40 @@ function asyncHandler (cb) {
   }
 }
 
+function addPageCount (arr) {
+  const count = arr.length
+  const pageCount = Math.ceil(count / 5)
+  return pageCount
+}
+
+function bookPagination (arr, pageNumber) {
+  const startIndex = (pageNumber * 5) - 5
+  const endIndex = pageNumber * 5
+  const filteredBooks = arr.slice(startIndex, endIndex)
+  return filteredBooks
+}
+
+function dbQuery () {
+  return Books.findAll({
+    where: {
+      [Op.or]: [
+        { title: { [Op.like]: '%' + searchTerm + '%' } },
+        { author: { [Op.like]: '%' + searchTerm + '%' } },
+        { genre: { [Op.like]: '%' + searchTerm + '%' } },
+        { year: { [Op.like]: '%' + searchTerm + '%' } }
+      ]
+    }
+  })
+}
+
 router.get('/', asyncHandler(async (req, res) => {
   res.redirect('/books/page/1')
 }))
 
 router.get('/books/page/:pageNumber', asyncHandler(async (req, res) => {
-  const books = await Books.findAll({ order: [['createdAt', 'DESC']] })
-  const count = books.length
-  const pageCount = Math.ceil(count / 5)
-  const startIndex = (req.params.pageNumber * 5) - 5
-  const endIndex = req.params.pageNumber * 5
-  const filteredBooks = books.slice(startIndex, endIndex)
+  const books = await dbQuery()
+  const filteredBooks = bookPagination(books, req.params.pageNumber)
+  const pageCount = addPageCount(books)
 
   res.render('index', { books: filteredBooks, pageCount, title: 'Books' })
 }))
@@ -43,20 +67,13 @@ router.post('/books/new/create', asyncHandler(async (req, res) => {
   res.redirect('/')
 }))
 
-router.post('/books/search', asyncHandler(async (req, res) => {
+router.post('/books/page/:pageNumber', asyncHandler(async (req, res) => {
   console.log(req.body.search)
-  const searchTerm = req.body.search
-  const books = await Books.findAll({
-    where: {
-      [Op.or]: [
-        { title: { [Op.like]: '%' + searchTerm + '%' } },
-        { author: { [Op.like]: '%' + searchTerm + '%' } },
-        { genre: { [Op.like]: '%' + searchTerm + '%' } },
-        { year: { [Op.like]: '%' + searchTerm + '%' } }
-      ]
-    }
-  })
-  res.render('index', { books, title: 'Books' })
+  searchTerm = req.body.search
+  const books = await dbQuery()
+  const filteredBooks = bookPagination(books, req.params.pageNumber)
+  const pageCount = addPageCount(books)
+  res.render('index', { books: filteredBooks, pageCount, title: 'Books' })
 }))
 
 router.get('/books/:id', asyncHandler(async (req, res) => {

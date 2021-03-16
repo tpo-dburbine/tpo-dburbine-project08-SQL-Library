@@ -9,6 +9,9 @@ block content
   form(action="/books/page/1", method="post")
     label(for="searchInput") Search
       input(type="text", name="search", id="search", placeholder="Search (ex. fiction)")
+      button.b= 'Submit'  
+      button.b( onClick="searchTerm=''" )= 'Refresh'
+
   table 
     thread
       tr

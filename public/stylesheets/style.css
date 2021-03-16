@@ -122,3 +122,27 @@ input[type=text] {
 .pagination li button.active, .pagination li button:hover {
   color: #fff;
 }
+
+button.b, input[type=submit] {
+  color: white;
+  background: #019875;
+  font-family: "Lucida Grande", Helvetica, Arial, sans-serif;
+  padding: 10px 14px 12px;
+  font-size: 14px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+form button.b, input[type=text] {
+  margin-left: 2px;
+  transition: 0.4s;
+}
+
+input[type=submit] {
+  border: 0;
+}
+
+  button.b:hover, input[type=submit]:hover {
+    background-color: #01b189;
+  }

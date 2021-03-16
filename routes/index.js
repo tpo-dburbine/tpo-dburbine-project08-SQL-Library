@@ -15,6 +15,7 @@ function asyncHandler (cb) {
     try {
       await cb(req, res, next)
     } catch (error) {
+      searchTerm = ''
       next(error)
     }
   }
@@ -54,6 +55,9 @@ router.get('/books/page/:pageNumber', asyncHandler(async (req, res) => {
   const books = await dbQuery()
   const filteredBooks = bookPagination(books, req.params.pageNumber)
   const pageCount = addPageCount(books)
+  if (req.params.pageNumber > pageCount) {
+    throw createError(404)
+  }
 
   res.render('index', { books: filteredBooks, pageCount, title: 'Books' })
 }))
@@ -63,8 +67,18 @@ router.get('/books/new', (req, res, next) => {
 })
 
 router.post('/books/new/create', asyncHandler(async (req, res) => {
-  await Books.create(req.body)
-  res.redirect('/')
+  let book
+  try{
+    book = await Books.create(req.body)
+    res.redirect('/')
+  } catch(error) {
+    if (error.name === 'SequelizeValidationError') {
+      book = await Books.build(req.body)
+      res.render('new-book', { books: book, errors: error.errors, title: 'New Book' })
+    } else {
+      throw error;
+    }
+  }
 }))
 
 router.post('/books/page/:pageNumber', asyncHandler(async (req, res) => {

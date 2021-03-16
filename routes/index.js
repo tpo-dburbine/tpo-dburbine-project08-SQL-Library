@@ -5,9 +5,7 @@ const createError = require('http-errors')
 const {Op} = require('sequelize')
 
 /* GET home page. */
-/* router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-}); */
+
 let searchTerm = ''
 
 function asyncHandler (cb) {

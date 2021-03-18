@@ -7,6 +7,11 @@ const {Op} = require('sequelize')
 /* GET home page. */
 
 let searchTerm = ''
+/**
+ *
+ * @param {async function} cb
+ * receives an async function and tries it. It returns the results of the cb or an error
+ */
 
 function asyncHandler (cb) {
   return async (req, res, next) => {
@@ -19,11 +24,25 @@ function asyncHandler (cb) {
   }
 }
 
+/**
+ *
+ * @param {Array} arr
+ * Takes the length of an array in order to determine the number of pages.
+ */
+
 function addPageCount (arr) {
   const count = arr.length
   const pageCount = Math.ceil(count / 5)
   return pageCount
 }
+
+/**
+ *
+ * @param {Array} arr
+ * @param {Number} pageNumber
+ * Takes an array and a number in order to determine the starting and ending position of the inputted array.
+ * returns an array containing the results between the start and ending index.
+ */
 
 function bookPagination (arr, pageNumber) {
   const startIndex = (pageNumber * 5) - 5
@@ -32,6 +51,10 @@ function bookPagination (arr, pageNumber) {
   return filteredBooks
 }
 
+/**
+ * @param {String} searchTerm
+ * Queries the database and returns results that match the searchTerm
+ */
 function dbQuery () {
   return Books.findAll({
     where: {
@@ -45,11 +68,13 @@ function dbQuery () {
   })
 }
 
+// Redirect to main book listing
 router.get('/', asyncHandler(async (req, res) => {
   searchTerm = ''
   res.redirect('/books/page/1')
 }))
 
+// Main book lisiting page
 router.get('/books/page/:pageNumber', asyncHandler(async (req, res) => {
   const books = await dbQuery()
   const filteredBooks = bookPagination(books, req.params.pageNumber)
@@ -57,14 +82,15 @@ router.get('/books/page/:pageNumber', asyncHandler(async (req, res) => {
   if (req.params.pageNumber > pageCount) {
     throw createError(404)
   }
-
   res.render('index', { books: filteredBooks, pageCount, title: 'Books' })
 }))
 
+// Gets the create book page
 router.get('/books/new', (req, res, next) => {
   res.render('new-book', { books: {}, title: 'New Book' })
 })
 
+// Creates the new book
 router.post('/books/new/create', asyncHandler(async (req, res) => {
   let book
   try{
@@ -80,6 +106,7 @@ router.post('/books/new/create', asyncHandler(async (req, res) => {
   }
 }))
 
+// Main book lisitng filtered by search term
 router.post('/books/page/:pageNumber', asyncHandler(async (req, res) => {
   console.log(req.body.search)
   searchTerm = req.body.search
@@ -89,6 +116,7 @@ router.post('/books/page/:pageNumber', asyncHandler(async (req, res) => {
   res.render('index', { books: filteredBooks, pageCount, title: 'Books' })
 }))
 
+// Gets the update book page
 router.get('/books/:id', asyncHandler(async (req, res) => {
   const books = await Books.findByPk(req.params.id)
   if (books) {
@@ -98,6 +126,7 @@ router.get('/books/:id', asyncHandler(async (req, res) => {
   }
 }))
 
+// Posts any updates made
 router.post('/books/:id/update', asyncHandler(async (req, res) => {
   let book
   try {
@@ -119,6 +148,7 @@ router.post('/books/:id/update', asyncHandler(async (req, res) => {
   }
 }))
 
+// Deletes selected book from the db
 router.post('/books/:id/delete', asyncHandler(async (req, res) => {
   const book = await Books.findByPk(req.params.id)
   if (book) {
